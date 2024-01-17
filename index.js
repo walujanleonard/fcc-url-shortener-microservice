@@ -16,12 +16,10 @@ app.use("/public", express.static(`${process.cwd()}/public`));
 app.get("/", (req, res) => res.sendFile(`${process.cwd()}/views/index.html`));
 
 app.post("/api/shorturl", (req, res) => {
-  let url = req.body.url;
-  const urlRegex =
-    /^https?:\/\/(www\.)?[a-z0-9]+(\.[a-z0-9]+)*\.[a-z]{2,}(\/[a-z0-9]+(\.[a-z0-9]+)*)*$/i;
-
-  if (urlRegex.test(url)) {
-    dns.lookup(url.replace(/^https?:\/\//i, ""), (err) => {
+  const url = req.body.url;
+  try {
+    const urlObject = new URL(url);
+    dns.lookup(urlObject.hostname, (err) => {
       if (err) {
         res.json({ error: "invalid url" });
       } else {
@@ -30,7 +28,7 @@ app.post("/api/shorturl", (req, res) => {
         res.json({ original_url: url, short_url: shortUrl });
       }
     });
-  } else {
+  } catch (_) {
     res.json({ error: "invalid url" });
   }
 });
